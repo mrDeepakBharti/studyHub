@@ -296,3 +296,158 @@ Widget shimmerTab() {
     ),
   );
 }
+
+Widget shimmerQuizCategory() {
+  return Container(
+    height: 167.h,
+    decoration: BoxDecoration(color: Colors.white),
+    child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: 17.w, vertical: 17.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Shimmer.fromColors(
+                baseColor: Colors.grey.shade300,
+                highlightColor: Colors.grey.shade100,
+                child: Container(
+                  height: 48.h,
+                  width: 35.w,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.all(Radius.circular(8.r)),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 12.w,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Shimmer.fromColors(
+                      baseColor: Colors.grey.shade300,
+                      highlightColor: Colors.grey.shade100,
+                      child: Container(
+                        height: 14.h,
+                        width: 100.w,
+                        color: Colors.grey.shade300,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Shimmer.fromColors(
+                      baseColor: Colors.grey.shade300,
+                      highlightColor: Colors.grey.shade100,
+                      child: Container(
+                        height: 12.h,
+                        width: 80.w,
+                        color: Colors.grey.shade300,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              height: 12.h,
+              width: 120.w,
+              color: Colors.grey.shade300,
+            ),
+          ),
+          Spacer(),
+          Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              height: 40.h,
+              width: 150.w,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget shimmerSubjectContainer() {
+  return Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+    child: Card(
+      elevation: 0.5,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 17.0, vertical: 17.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          border: Border.all(color: Color(0xffE5E7EB)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 40.0,
+                  width: 40.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  ),
+                ),
+              ),
+              title: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 16.0,
+                  width: 100.0,
+                  color: Colors.grey,
+                ),
+              ),
+              trailing: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 16.0,
+                  width: 16.0,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            SizedBox(height: 16.0),
+            ...List.generate(3, (index) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 12.0),
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    height: 50.0,
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    ),
+  );
+}

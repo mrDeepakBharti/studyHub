@@ -3,12 +3,52 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:study_hub/Constants/constant.dart';
 import 'package:study_hub/Route/RouteName.dart';
+import 'package:study_hub/Service/dialog_helper.dart';
+import 'package:study_hub/View/PreviousYearPaper/Models/paperResponse.dart';
 import 'package:study_hub/View/PreviousYearPaper/PYPaperController/PYPaperController.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
 import 'package:study_hub/Widget/appBar.dart';
+import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
-class PYPaper extends StatelessWidget {
+class PYPaper extends StatefulWidget {
   const PYPaper({super.key});
+
+  @override
+  State<PYPaper> createState() => _PYPaperState();
+}
+
+class _PYPaperState extends State<PYPaper> {
+  final Pypapercontroller tabController = Get.put(Pypapercontroller());
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch categories initially
+    tabController.getCategory().then((_) {
+      // Ensure categories are fetched before fetching books
+      if (tabController.category.isNotEmpty) {
+        tabController
+            .getSubjectCategory(id: tabController.category.first!.id.toString())
+            .then((value) {
+          tabController.getPreviousPaper(
+              categoryId: tabController
+                  .category[tabController.selectedTab.value]!.id
+                  .toString(),
+              subjectId: tabController.subjectCategory.first!.id.toString());
+        });
+        kLogger.f('Category Id:${tabController.category.first!.id.toString()}');
+        kLogger.f(
+            'Subject Id:${tabController.subjectCategory.first!.id.toString()}');
+
+        // kLogger.e(tabController.paperData.toJson());
+      }
+      kLogger.t(tabController.subjectCategory.toList());
+    });
+
+    // Add listener for infinite scrolling
+    _scrollController.addListener(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +428,6 @@ class PYPaper extends StatelessWidget {
     ];
 
     // Initialize the controller to handle tab selection
-    final Pypapercontroller tabController = Get.put(Pypapercontroller());
 
     return Scaffold(
       backgroundColor: AppConstant.appBackGround,
@@ -419,23 +458,47 @@ class PYPaper extends StatelessWidget {
           ),
 
           // Tabs Row
-          Obx(() => SliverToBoxAdapter(
+          Obx(() {
+            if (tabController.isLoading.value) {
+              return SliverToBoxAdapter(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: Row(
                       children: List.generate(
-                        notes.length,
+                        5, // Number of shimmer placeholders
+                        (index) => shimmerTab(), // Use the shimmerTab function
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              return SliverToBoxAdapter(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Row(
+                      children: List.generate(
+                        tabController.category.length,
                         (index) {
                           var isSelected =
                               tabController.selectedTab.value == index;
                           return Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8.w),
-                            child: subjectTabs(
-                              notes[index]['class']!,
+                            child: tabs(
+                              tabController.category[index]!.name!,
                               isSelected,
-                              () => tabController.selectTab(index),
+                              // () => ncertbookscontroller.selectTab(index),
+                              () {
+                                tabController.selectTab(index);
+                                tabController.getSubjectCategory(
+                                  id: tabController.category[index]!.id
+                                      .toString(),
+                                );
+                              },
                             ),
                           );
                         },
@@ -443,64 +506,126 @@ class PYPaper extends StatelessWidget {
                     ),
                   ),
                 ),
-              )),
+              );
+            }
+          }),
           Obx(() {
-            return SliverToBoxAdapter(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16.w, right: 16.w, top: 16.h),
-                  child: Row(
-                    children: List.generate(
-                      notes[tabController.selectedTab.value]['subjects']
-                          .length, // Fix here
-                      (index) {
-                        var isSelected =
-                            tabController.selectedSubject.value == index;
-                        return Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w),
-                          child: subjectTabs(
-                            notes[tabController.selectedTab.value]['subjects']
-                                [index]['subject'],
-                            isSelected,
-                            () => tabController.selectSub(index),
-                          ),
-                        );
-                      },
+            if (tabController.isLoading.value) {
+              return SliverToBoxAdapter(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Row(
+                      children: List.generate(
+                        5, // Number of shimmer placeholders
+                        (index) => shimmerTab(), // Use the shimmerTab function
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
+              );
+            } else {
+              return SliverToBoxAdapter(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding:
+                        EdgeInsets.only(left: 16.w, right: 16.w, top: 16.h),
+                    child: Row(
+                      children: List.generate(
+                        // notes[tabController.selectedTab.value]['subjects']
+                        //     .length,
+                        // Fix here
+                        tabController.subjectCategory.length,
+                        (index) {
+                          var isSelected =
+                              tabController.selectedSubject.value == index;
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8.w),
+                            child: subjectTabs(
+                              // notes[tabController.selectedTab.value]['subjects']
+                              //     [index]['subject'],
+                              tabController.subjectCategory[index]!.name!,
+                              isSelected,
+                              () {
+                                tabController.selectSub(index);
+                                tabController.getPreviousPaper(
+                                  categoryId: tabController
+                                      .category[
+                                          tabController.selectedTab.value]!
+                                      .id
+                                      .toString(),
+                                  subjectId: tabController
+                                      .subjectCategory[index]!.id
+                                      .toString(),
+                                );
+                                kLogger.f(
+                                    'Category Id:${tabController.category[tabController.selectedTab.value]!.id.toString()}');
+                                kLogger.f(
+                                    'Subject Id:${tabController.subjectCategory[index]!.id.toString()}');
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
           }),
 
-          // List of Subjects
+          // Obx(() {
+          //   var selectedClass = notes[tabController.selectedTab.value]['class'];
+          //   var subjects = notes.firstWhere(
+          //       (note) => note['class'] == selectedClass)['subjects'];
+
+          //   // Get the selected subject
+          //   var selectedSubject = subjects[tabController.selectedSubject.value];
+
+          //   return SliverList(
+          //     delegate: SliverChildBuilderDelegate(
+          //       (context, index) {
+          //         var subject = subjects[index];
+
+          //         // Only show the previous year papers for the selected subject
+          //         if (subject['subject'] == selectedSubject['subject']) {
+          //           return subjectContainer(
+          //               subject['previousYearPapers'], subject['nIcon']);
+          //         } else {
+          //           // If it's not the selected subject, do not display the previous year papers
+          //           return Container(); // Empty container for other subjects
+          //         }
+          //       },
+          //       childCount: subjects.length,
+          //     ),
+          //   );
+          // }),
+
           Obx(() {
-            var selectedClass = notes[tabController.selectedTab.value]['class'];
-            var subjects = notes.firstWhere(
-                (note) => note['class'] == selectedClass)['subjects'];
+            if (tabController.isLoading.value) {
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 20.h),
+                  child: shimmerSubjectContainer(),
+                ),
+              );
+            } else {
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    var paper = tabController.paperData[index];
 
-            // Get the selected subject
-            var selectedSubject = subjects[tabController.selectedSubject.value];
+                    // Only show the previous year papers for the selected subject
 
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  var subject = subjects[index];
-
-                  // Only show the previous year papers for the selected subject
-                  if (subject['subject'] == selectedSubject['subject']) {
-                    return subjectContainer(
-                        subject['previousYearPapers'], subject['nIcon']);
-                  } else {
-                    // If it's not the selected subject, do not display the previous year papers
-                    return Container(); // Empty container for other subjects
-                  }
-                },
-                childCount: subjects.length,
-              ),
-            );
-          }),
+                    return subjectContainer(paper!.papers!);
+                  },
+                  childCount: tabController.paperData.length,
+                ),
+              );
+            }
+          })
         ],
       ),
     );
@@ -547,7 +672,8 @@ Widget subjectTabs(String title, bool isSelected, VoidCallback onTap) {
   );
 }
 
-Widget subjectContainer(List<dynamic> previousYears, String image) {
+// Widget subjectContainer(List<dynamic> previousYears, String image) {
+Widget subjectContainer(List<Paper> previousYears) {
   ScrollController _scrollController = ScrollController();
   List<Color> myColors = [
     Color(0xffDBEAFE), // Light Blue
@@ -568,9 +694,9 @@ Widget subjectContainer(List<dynamic> previousYears, String image) {
         itemCount: previousYears.length,
         itemBuilder: (context, index) {
           var yearData = previousYears[index];
-          var sets = yearData['sets']; // The available sets for that year
+          var sets = yearData.paperSet; // The available sets for that year
           Color containerColor = myColors[index % myColors.length];
-          var countLength = sets.length;
+          var countLength = sets!.length;
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 17.w, vertical: 17.h),
             decoration: BoxDecoration(
@@ -590,14 +716,14 @@ Widget subjectContainer(List<dynamic> previousYears, String image) {
                         color: containerColor,
                         borderRadius: BorderRadius.all(Radius.circular(8.r))),
                     child: Image.asset(
-                      image,
+                      'asset/images/notes1.png',
                       height: 20.h,
                       width: 15.w,
                       fit: BoxFit.contain,
                     ),
                   ),
                   title: Text(
-                    '${yearData['year']}',
+                    '${yearData.paperSet}',
                     style: CustomTextStyle.bodyNormal.copyWith(
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
@@ -634,7 +760,7 @@ Widget subjectContainer(List<dynamic> previousYears, String image) {
                                       overflow: TextOverflow.ellipsis,
                                       text: TextSpan(children: [
                                         TextSpan(
-                                            text: '${sets[index]}.',
+                                            text: 'Set${sets[index]}',
                                             style: CustomTextStyle.bodyNormal
                                                 .copyWith(
                                               color: Colors.black,

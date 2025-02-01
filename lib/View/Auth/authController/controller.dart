@@ -18,6 +18,7 @@ class AuthController extends GetxController {
   TextEditingController signuPassword = TextEditingController();
 
   TextEditingController otp = TextEditingController();
+  MainController main = Get.put(MainController());
   RxInt timeRemaining = 120.obs;
   Timer? _timer;
   void startTimer() {
@@ -39,6 +40,7 @@ class AuthController extends GetxController {
     Map<String, String> requestBody = <String, String>{
       'email': email,
       'password': password,
+      'fcm_Token':
     };
 
     BaseController().showLoading();

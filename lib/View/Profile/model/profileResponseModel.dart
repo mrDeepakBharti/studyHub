@@ -107,10 +107,12 @@ class User {
   int? accuracy;
   int? points;
   List<dynamic>? recentActivity;
-  List<dynamic>? interests;
+  List<String>? interests;
   String? category;
   DateTime? createdAt;
   DateTime? updatedAt;
+  String? bio;
+  String? education;
 
   User({
     this.email,
@@ -124,6 +126,8 @@ class User {
     this.category,
     this.createdAt,
     this.updatedAt,
+    this.bio,
+    this.education,
   });
 
   factory User.fromMap(Map<String, dynamic> json) => User(
@@ -138,7 +142,7 @@ class User {
             : List<dynamic>.from(json["recentActivity"]!.map((x) => x)),
         interests: json["interests"] == null
             ? []
-            : List<dynamic>.from(json["interests"]!.map((x) => x)),
+            : List<String>.from(json["interests"]!.map((x) => x)),
         category: json["category"],
         createdAt: json["createdAt"] == null
             ? null
@@ -146,6 +150,8 @@ class User {
         updatedAt: json["updatedAt"] == null
             ? null
             : DateTime.parse(json["updatedAt"]),
+        bio: json["bio"],
+        education: json["education"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -164,5 +170,7 @@ class User {
         "category": category,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
+        "bio": bio,
+        "education": education,
       };
 }

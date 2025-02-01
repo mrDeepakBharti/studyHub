@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:getwidget/components/carousel/gf_carousel.dart';
 import 'package:study_hub/Constants/constant.dart';
 import 'package:study_hub/Route/RouteName.dart';
+import 'package:study_hub/View/practice.dart';
 import 'package:study_hub/Widget/CustomButton.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
 import 'package:study_hub/Widget/appBar.dart';
@@ -87,7 +88,8 @@ class Home extends StatelessWidget {
               background: CustomAppBar(
                 title: 'Dashboard',
                 onAction2: () {
-                  Get.toNamed(RouteName.search);
+                  // Get.toNamed(RouteName.search);
+                  Get.to(()=>Practice());
                 },
                 onAction1: () {
                   Get.toNamed(RouteName.notifications);

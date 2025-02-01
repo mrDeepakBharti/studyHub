@@ -62,25 +62,36 @@ class Result {
 
 class CategoryData {
   String? id;
-  String? name;
+  String? title;
+  String? subTitle;
   String? categoryClass;
+  String? icon;
+  String? color;
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
+  String? name;
 
   CategoryData({
     this.id,
-    this.name,
+    this.title,
+    this.subTitle,
     this.categoryClass,
+    this.icon,
+    this.color,
     this.createdAt,
     this.updatedAt,
     this.v,
+    this.name,
   });
 
   factory CategoryData.fromMap(Map<String, dynamic> json) => CategoryData(
         id: json["_id"],
-        name: json["name"],
+        title: json["title"],
+        subTitle: json["subTitle"],
         categoryClass: json["class"],
+        icon: json["icon"],
+        color: json["color"],
         createdAt: json["createdAt"] == null
             ? null
             : DateTime.parse(json["createdAt"]),
@@ -88,14 +99,19 @@ class CategoryData {
             ? null
             : DateTime.parse(json["updatedAt"]),
         v: json["__v"],
+        name: json["name"],
       );
 
   Map<String, dynamic> toMap() => {
         "_id": id,
-        "name": name,
+        "title": title,
+        "subTitle": subTitle,
         "class": categoryClass,
+        "icon": icon,
+        "color": color,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
         "__v": v,
+        "name": name,
       };
 }

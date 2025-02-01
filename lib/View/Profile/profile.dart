@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:study_hub/Constants/constant.dart';
 import 'package:study_hub/Route/RouteName.dart';
 import 'package:study_hub/Service/dialog_helper.dart';
+import 'package:study_hub/View/EditProfile/EditProfileController/editPorfileController.dart';
 import 'package:study_hub/View/Profile/controller/profileController.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
 import 'package:study_hub/Widget/appBar.dart';
@@ -17,6 +20,9 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   ProfileController controller = Get.put(ProfileController());
+  Editporfilecontroller editporfilecontroller =
+      Get.put(Editporfilecontroller());
+
   @override
   void initState() {
     controller.getProfileData();
@@ -81,15 +87,32 @@ class _ProfileState extends State<Profile> {
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: 40.r,
-                              backgroundImage:
-                                  const AssetImage('asset/images/profile.png'),
-                            ),
+                            Obx(() {
+                              return CircleAvatar(
+                                radius: 40.r,
+                                backgroundImage: (controller.profileDataRx.value
+                                                ?.user?.profileUrl !=
+                                            null &&
+                                        controller.profileDataRx.value!.user!
+                                            .profileUrl!.isNotEmpty)
+                                    ? NetworkImage(controller
+                                        .profileDataRx.value!.user!.profileUrl!)
+                                    : (editporfilecontroller
+                                                    .profileImage.value !=
+                                                null
+                                            ? FileImage(File(
+                                                editporfilecontroller
+                                                    .profileImage.value!.path))
+                                            : const AssetImage(
+                                                'asset/images/profile.png'))
+                                        as ImageProvider,
+                              );
+                            }),
                             SizedBox(
                               width: 16.w,
                             ),
                             Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   controller.profileDataRx.value!.user!.name!,
@@ -97,11 +120,20 @@ class _ProfileState extends State<Profile> {
                                       fontSize: 20.sp, color: Colors.black),
                                 ),
                                 Text(
-                                  'Sanford University',
+                                  controller
+                                      .profileDataRx.value!.user!.education!,
+                                  style: CustomTextStyle.BodyBold.copyWith(
+                                      fontSize: 12.sp,
+                                      color: const Color(0xff6B7280)),
+                                ),
+
+                                //Todo Bio is not come in this List
+                                Text(
+                                  controller.profileDataRx.value!.user!.bio!,
                                   style: CustomTextStyle.bodyNormal.copyWith(
                                       fontWeight: FontWeight.w400,
                                       color: const Color(0xff6B7280)),
-                                )
+                                ),
                               ],
                             )
                           ],
@@ -111,7 +143,8 @@ class _ProfileState extends State<Profile> {
                           left: 50.w,
                           child: GestureDetector(
                             onTap: () {
-                              Get.toNamed(RouteName.editProfile);
+                              editporfilecontroller
+                                  .pickImage(); // Trigger image picker
                             },
                             child: Image.asset(
                               'asset/images/editImage.png',
@@ -120,6 +153,17 @@ class _ProfileState extends State<Profile> {
                           ),
                           height: 37.h,
                           width: 30.w,
+                        ),
+                        Positioned(
+                          top: 2.h,
+                          right: 2.w,
+                          child: GestureDetector(
+                              onTap: () {
+                                Get.toNamed(RouteName.editProfile);
+                              },
+                              child: Icon(Icons.edit)),
+                          height: 25.h,
+                          width: 25.w,
                         )
                       ],
                     ),

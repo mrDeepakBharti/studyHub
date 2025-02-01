@@ -3,12 +3,48 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:study_hub/Constants/constant.dart';
 import 'package:study_hub/Route/RouteName.dart';
+import 'package:study_hub/Service/dialog_helper.dart';
+import 'package:study_hub/View/Quiz/QuizLevels/QuizController/quizController.dart';
 import 'package:study_hub/Widget/CustomButton.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
 import 'package:study_hub/Widget/appBar.dart';
+import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
-class Quiz extends StatelessWidget {
+class Quiz extends StatefulWidget {
   const Quiz({super.key});
+
+  @override
+  State<Quiz> createState() => _QuizState();
+}
+
+class _QuizState extends State<Quiz> {
+  QuizController quizController = Get.put(QuizController());
+  @override
+  void initState() {
+    quizController.getPracticeQuiz();
+    super.initState();
+    // Set the density for the app
+  }
+
+  Color _parseColor(String? colorString) {
+    // Use default color if the string is null or empty
+    if (colorString == null || colorString.isEmpty) {
+      return const Color(0xff000000); // Default black color
+    }
+
+    // Ensure the string has the '0xff' prefix for ARGB format
+    if (!colorString.startsWith('0xff')) {
+      colorString = '0xff$colorString';
+    }
+
+    try {
+      return Color(int.parse(colorString));
+    } catch (e) {
+      // Handle invalid color format gracefully
+      print('Invalid color format: $colorString');
+      return const Color(0xff000000); // Default fallback color
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,26 +99,91 @@ class Quiz extends StatelessWidget {
               SizedBox(
                 height: 24.h,
               ),
-              Expanded(
-                child: GridView.builder(
-                  itemCount: quiz.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      childAspectRatio: 0.9,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      crossAxisCount: 2),
-                  itemBuilder: (BuildContext context, int index) {
-                    return examCategory(
-                        quiz[index]['color'],
-                        quiz[index]['icon'],
-                        quiz[index]['title'],
-                        quiz[index]['subtitle'],
-                        quiz[index]['Quizs'], () {
-                      Get.toNamed(RouteName.quizsLevels);
-                    });
-                  },
-                ),
-              )
+              // Obx(() {
+              //   if (quizController.isLoading.value) {
+              //     return shimmerQuizCategory();
+              //   } else {
+              //     return Expanded(
+              //       child: GridView.builder(
+              //         itemCount: quizController.quizCategory.length,
+              //         gridDelegate:
+              //             const SliverGridDelegateWithFixedCrossAxisCount(
+              //                 childAspectRatio: 0.9,
+              //                 mainAxisSpacing: 16,
+              //                 crossAxisSpacing: 16,
+              //                 crossAxisCount: 2),
+              //         itemBuilder: (BuildContext context, int index) {
+              //           var quizData = quizController.quizCategory[index];
+
+              //           kLogger.f(quizData);
+              //           return examCategory(
+              //               quiz[index]['color'],
+              //               quiz[index]['icon'],
+              //               quiz[index]['title'],
+              //               quiz[index]['subtitle'],
+              //               quiz[index]['Quizs'], () {
+              //             Get.toNamed(RouteName.quizsLevels);
+              //           });
+              //         },
+              //       ),
+              //     );
+              //   }
+              // })
+              Obx(() {
+                if (quizController.isLoading.value) {
+                  return Expanded(
+                    child: GridView.builder(
+                      itemCount: 4,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        childAspectRatio: 0.9,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        crossAxisCount: 2,
+                      ),
+                      itemBuilder: (BuildContext context, int index) {
+                        // Access the Datum object directly
+
+                        // Pass Datum properties to your widget
+                        return shimmerQuizCategory();
+                      },
+                    ),
+                  );
+                } else {
+                  return Expanded(
+                    child: GridView.builder(
+                      itemCount: quizController.quizCategory.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        childAspectRatio: 0.9,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        crossAxisCount: 2,
+                      ),
+                      itemBuilder: (BuildContext context, int index) {
+                        // Access the Datum object directly
+                        var quizData = quizController.quizCategory[index];
+
+                        // Log the data for debugging
+                        kLogger.f(quizData);
+
+                        // Pass Datum properties to your widget
+                        return examCategory(
+                          _parseColor(
+                              quizData?.color), // Convert string to Color
+                          quizData?.icon ?? '', // Use default if null
+                          quizData?.title ?? 'No Title', // Title
+                          quizData?.subTitle ?? 'No Subtitle', // Subtitle
+                          '${quizData?.quizCount ?? 0} Quizzes', // Quiz count
+                          () {
+                            Get.toNamed(RouteName.quizsLevels);
+                          },
+                        );
+                      },
+                    ),
+                  );
+                }
+              })
             ],
           ),
         ));
@@ -109,7 +210,7 @@ Widget examCategory(Color color, String image, String title, String subtitle,
                     color: color,
                     borderRadius: BorderRadius.all(Radius.circular(8.r))),
                 child: Image(
-                  image: AssetImage(image),
+                  image: NetworkImage(image),
                   fit: BoxFit.contain,
                 ),
               ),
