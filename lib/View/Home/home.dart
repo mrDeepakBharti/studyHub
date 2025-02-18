@@ -89,7 +89,7 @@ class Home extends StatelessWidget {
                 title: 'Dashboard',
                 onAction2: () {
                   // Get.toNamed(RouteName.search);
-                  Get.to(()=>Practice());
+                  Get.to(() => WatchlistPage());
                 },
                 onAction1: () {
                   Get.toNamed(RouteName.notifications);

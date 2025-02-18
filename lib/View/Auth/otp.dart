@@ -8,6 +8,7 @@ import 'package:study_hub/Route/RouteName.dart';
 import 'package:study_hub/View/Auth/authController/controller.dart';
 import 'package:study_hub/Widget/CustomButton.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
+import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
 class SignupOtp extends StatefulWidget {
   final bool? isForResetPassword;
@@ -100,16 +101,38 @@ class _SignupOtpState extends State<SignupOtp> {
                           vertical: 12.h, horizontal: 115.w),
                       backgroundColor: AppConstant.buttonColor,
                       title: 'Verify OTP',
+                      // onPressed: () async {
+                      //   if (_key.currentState!.validate() &&
+                      //       controller.otp == 4) {
+                      //     if (widget.isForResetPassword == true) {
+                      //       Get.offAllNamed(RouteName.login);
+                      //     } else {
+                      //       controller.verifyOtp(
+                      //           email: email, otp: controller.otp.text);
+                      //       // Get.offAllNamed(RouteName.selectCategory);
+                      //     }
+                      //   }
+                      // },
                       onPressed: () async {
-                        if (_key.currentState!.validate() &&
-                            controller.otp == 4) {
+                        kLogger.i('The button is tapped');
+
+                        if (controller.otp.text.length == 4) {
+                          // Checking OTP length
                           if (widget.isForResetPassword == true) {
                             Get.offAllNamed(RouteName.login);
                           } else {
-                            controller.verifyOtp(
+                            bool result = await controller.verifyOtp(
                                 email: email, otp: controller.otp.text);
-                            // Get.offAllNamed(RouteName.selectCategory);
+
+                            if (result == true) {
+                              Get.offAllNamed(RouteName.bottomNav);
+                            } else {
+                              Get.snackbar('Failure', 'Otp is not Verified');
+                            }
+                            kLogger.i('OTP verified');
                           }
+                        } else {
+                          kLogger.e('Invalid OTP: Must be 4 digits');
                         }
                       },
                       style: CustomTextStyle.bodyNormal.copyWith(

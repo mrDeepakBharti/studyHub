@@ -8,9 +8,25 @@ import 'package:study_hub/Route/RouteName.dart';
 import 'package:study_hub/Widget/CustomButton.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
 import 'package:study_hub/Widget/appBar.dart';
+import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
-class Quizinstruction extends StatelessWidget {
+class Quizinstruction extends StatefulWidget {
   const Quizinstruction({super.key});
+
+  @override
+  State<Quizinstruction> createState() => _QuizinstructionState();
+}
+
+class _QuizinstructionState extends State<Quizinstruction> {
+  var quizId = Get.arguments['id'];
+  var quizLevel = Get.arguments['quizLevel'];
+
+  @override
+  void initState() {
+    kLogger.i(quizId.toString());
+    kLogger.d(quizLevel.toString());
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +41,7 @@ class Quizinstruction extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Level 1 Quiz Rules',
+              'Level ${quizLevel} Quiz Rules',
               style: CustomTextStyle.BodyBold.copyWith(
                   color: Colors.black, fontSize: 20.sp),
             ),
@@ -88,7 +104,7 @@ class Quizinstruction extends StatelessWidget {
                     EdgeInsets.symmetric(horizontal: 106.w, vertical: 16.h),
                 title: 'Start Quiz',
                 onPressed: () {
-                  Get.toNamed(RouteName.startQuiz);
+                  Get.toNamed(RouteName.startQuiz, arguments: {'id': quizId});
                 },
                 style: CustomTextStyle.bodyNormal
                     .copyWith(fontSize: 18.sp, color: Colors.white))

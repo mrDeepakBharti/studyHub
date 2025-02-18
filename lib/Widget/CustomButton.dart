@@ -37,6 +37,7 @@ class customButton extends StatelessWidget {
               color: borderColor ?? Colors.transparent, width: borderWidth),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             icon != null
                 ? Icon(
@@ -48,12 +49,10 @@ class customButton extends StatelessWidget {
                 ? SizedBox(width: 8.w)
                 : SizedBox
                     .shrink(), // Adjust the spacing between the icon and the text
-            Center(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: style,
-              ),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: style,
             ),
           ],
         ),

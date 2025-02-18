@@ -451,3 +451,59 @@ Widget shimmerSubjectContainer() {
     ),
   );
 }
+
+Widget QuizLevelShimmer() {
+  return Container(
+    margin: EdgeInsets.symmetric(vertical: 20.h),
+    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+    decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(8.r))),
+    child: Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(100.r)),
+          child: Container(
+            color: Colors.grey[300],
+            width: 48.h,
+            height: 48.h,
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 100.w,
+              height: 16.h,
+              color: Colors.grey[300],
+            ),
+            SizedBox(height: 5.h),
+            Container(
+              width: 80.w,
+              height: 14.h,
+              color: Colors.grey[300],
+            ),
+            SizedBox(height: 5.h),
+            Container(
+              width: 60.w,
+              height: 14.h,
+              color: Colors.grey[300],
+            ),
+          ],
+        ),
+        trailing: Container(
+          padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(10.r)),
+            color: Colors.grey[300],
+          ),
+          width: 70.w,
+          height: 30.h,
+        ),
+      ),
+    ),
+  );
+}

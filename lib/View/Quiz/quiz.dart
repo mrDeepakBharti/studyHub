@@ -176,7 +176,9 @@ class _QuizState extends State<Quiz> {
                           quizData?.subTitle ?? 'No Subtitle', // Subtitle
                           '${quizData?.quizCount ?? 0} Quizzes', // Quiz count
                           () {
-                            Get.toNamed(RouteName.quizsLevels);
+                            Get.toNamed(RouteName.quizsLevels, arguments: {
+                              'id': quizData?.id,
+                            });
                           },
                         );
                       },

@@ -1,36 +1,93 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:study_hub/Binding/connectivity_binding.dart';
 import 'package:study_hub/Route/route.dart';
+import 'package:study_hub/Service/pushNotificationService/pushNotification.dart';
 import 'package:study_hub/firebase_options.dart';
 import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  // kLogger.i("handled background message");
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    kLogger.w("Starting Firebase initialization");
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-  } catch (e) {
-    kLogger.e('Firebase initialization error: $e');
-  }
 
-  await UserSimplePreferences.init();
-  runApp(const MyApp());
+  try {
+    // Initialize Firebase and other necessary services outside runZonedGuarded
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    kLogger.i('Firebase initialized successfully.');
+
+    // Initialize Firebase Crashlytics
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+    kLogger.i('Firebase Crashlytics initialized successfully.');
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    NotificationServices notificationServices = NotificationServices();
+    kLogger.i('NotificationServices initialized successfully.');
+
+    if (Platform.isIOS) {
+      final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+      kLogger.w("APNS Token: $apnsToken");
+    }
+
+    ///Initialize network listener
+    // ConnectivityController connection = ConnectivityController();
+    // connection.onInit();
+
+    notificationServices.isTokenRefresh();
+    final fcmToken = await notificationServices.getDeviceToken();
+    kLogger.i("FCM Token: $fcmToken");
+
+    MainController mainController = Get.put(MainController());
+    mainController.fcmToken.value = fcmToken;
+    subscribeToJobUpdatesTopic();
+
+    await UserSimplePreferences.init();
+
+    // Run the app
+    runApp(const MyApp());
+  } catch (e) {
+    kLogger.e('Error during Firebase initialization: $e');
+  }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+  NotificationServices notificationServices = NotificationServices();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    notificationServices.requestNotificationPermission();
+    notificationServices.foregroundMessage();
+    notificationServices.firebaseInit(context);
+    notificationServices.setupInteractMessage(context);
+    notificationServices.isTokenRefresh();
+    notificationServices.getDeviceToken();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -77,4 +134,13 @@ class MyApp extends StatelessWidget {
 
 class MainController extends GetxController {
   RxString fcmToken = "".obs;
+}
+
+void subscribeToJobUpdatesTopic() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Subscribe to the 'job_updates' topic
+  await messaging.subscribeToTopic('job_posts');
+
+  print('Subscribed to job_updates topic');
 }

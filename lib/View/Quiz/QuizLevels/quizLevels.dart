@@ -1,37 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/get_navigation.dart';
+import 'package:get/get.dart';
 import 'package:study_hub/Constants/constant.dart';
 import 'package:study_hub/Route/RouteName.dart';
+import 'package:study_hub/Service/dialog_helper.dart';
+import 'package:study_hub/View/Quiz/QuizLevels/QuizController/quizController.dart';
 import 'package:study_hub/Widget/TextStyle.dart';
 import 'package:study_hub/Widget/appBar.dart';
+import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
-class Quizlevels extends StatelessWidget {
-  const Quizlevels({super.key});
+class Quizlevels extends StatefulWidget {
+  Quizlevels({super.key});
+
+  @override
+  State<Quizlevels> createState() => _QuizlevelsState();
+}
+
+class _QuizlevelsState extends State<Quizlevels> {
+  QuizController quizController = Get.put(QuizController());
+  var id = Get.arguments['id'];
+
+  @override
+  void initState() {
+    // kLogger.i(quizController.quizLevel.first.toString());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      quizController.getQuizLevel(id!);
+      kLogger.f(quizController.quizLevel.toString());
+      // Add Your Code here.
+    });
+    kLogger.d("id Recieve----->${id.toString()}");
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> quizLevels = [
-      {
-        'level': 'Level 1',
-        'type': 'Basic Physics',
-        'points': '0/100',
-        'isCompleted': true
-      },
-      {
-        'level': 'Level 2',
-        'type': 'Advanced Physics',
-        'points': '0/100',
-        'isCompleted': false
-      },
-      {
-        'level': 'Level 3',
-        'type': 'Quantum Physics',
-        'points': '0/100',
-        'isCompleted': false
-      },
-    ];
+    // List<Map<String, dynamic>> quizLevels = [
+    //   {
+    //     'level': 'Level 1',
+    //     'type': 'Basic Physics',
+    //     'points': '0/100',
+    //     'isCompleted': true
+    //   },
+    //   {
+    //     'level': 'Level 2',
+    //     'type': 'Advanced Physics',
+    //     'points': '0/100',
+    //     'isCompleted': false
+    //   },
+    //   {
+    //     'level': 'Level 3',
+    //     'type': 'Quantum Physics',
+    //     'points': '0/100',
+    //     'isCompleted': false
+    //   },
+    // ];
     return Scaffold(
         backgroundColor: AppConstant.appBackGround,
         appBar: CustomAppBar(
@@ -42,30 +65,57 @@ class Quizlevels extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Column(
             children: [
-              Expanded(
-                child: ListView.builder(
-                    itemCount: quizLevels.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Padding(
-                        padding: EdgeInsets.only(top: 20.h),
-                        child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20.w, vertical: 10.h),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8.r))),
-                            child: QuizLevel(
-                                quizLevels[index]['level'],
-                                quizLevels[index]['type'],
-                                quizLevels[index]['points'],
-                                quizLevels[index]['isCompleted'],
-                                quizLevels[index].length.toString(), () {
-                              Get.toNamed(RouteName.quizInstruction);
-                            })),
-                      );
-                    }),
-              )
+              Obx(() {
+                if (quizController.isLoading.value) {
+                  return Expanded(
+                    child: ListView.builder(
+                      itemCount: 5,
+                      itemBuilder: (BuildContext context, int index) {
+                        return QuizLevelShimmer();
+                      },
+                    ),
+                  );
+                } else if (quizController.quizLevel.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No Quiz Level Found',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  );
+                } else {
+                  return Expanded(
+                    child: ListView.builder(
+                        itemCount: quizController.quizLevel.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          var quizData = quizController.quizLevel[index];
+                          kLogger
+                              .t("QuizData Tile:${quizData.name.toString()}");
+                          return Padding(
+                            padding: EdgeInsets.only(top: 20.h),
+                            child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 20.w, vertical: 10.h),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(8.r))),
+                                child: QuizLevel(
+                                    quizData.level.toString(),
+                                    quizData.name ?? "",
+                                    quizData.points.toString(),
+                                    quizData.unlocked ?? false,
+                                    (index + 1).toString(), () {
+                                  Get.toNamed(RouteName.quizInstruction,
+                                      arguments: {
+                                        'quizLevel': index + 1,
+                                        'id': quizData.id,
+                                      });
+                                }, quizData.score.toString())),
+                          );
+                        }),
+                  );
+                }
+              })
             ],
           ),
         ));
@@ -73,7 +123,7 @@ class Quizlevels extends StatelessWidget {
 }
 
 Widget QuizLevel(String level, String type, String points, bool isCompleted,
-    String index, VoidCallback onTap) {
+    String index, VoidCallback onTap, String score) {
   return ListTile(
     contentPadding: EdgeInsets.zero,
     leading: ClipRRect(
@@ -100,12 +150,12 @@ Widget QuizLevel(String level, String type, String points, bool isCompleted,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         isCompleted
-            ? Text(level,
+            ? Text("Level $level",
                 style: CustomTextStyle.BodyBold.copyWith(
                   color: Colors.black,
                 ))
             : Text(
-                level,
+                "Level $level",
                 style: CustomTextStyle.BodyBold.copyWith(
                   color: Color(0xff4B5563),
                 ),
@@ -130,7 +180,7 @@ Widget QuizLevel(String level, String type, String points, bool isCompleted,
                     size: 14.sp,
                   ),
                   Text(
-                    points,
+                    " ${score}/${points}",
                     style: CustomTextStyle.bodyNormal
                         .copyWith(color: Color(0xff6B7280)),
                   ),
@@ -151,7 +201,7 @@ Widget QuizLevel(String level, String type, String points, bool isCompleted,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(10.r)),
                   color: AppConstant.buttonColor),
-              child: Text('Submit',
+              child: Text('Start',
                   style:
                       CustomTextStyle.bodyNormal.copyWith(color: Colors.white)),
             ),

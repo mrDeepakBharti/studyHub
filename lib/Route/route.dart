@@ -37,7 +37,7 @@ class AppRoutes {
             name: RouteName.notifications,
             page: () => const NotificationAlert()),
         GetPage(name: RouteName.previousYear, page: () => const PYPaper()),
-        GetPage(name: RouteName.quizsLevels, page: () => const Quizlevels()),
+        GetPage(name: RouteName.quizsLevels, page: () => Quizlevels()),
         GetPage(
             name: RouteName.quizInstruction,
             page: () => const Quizinstruction()),

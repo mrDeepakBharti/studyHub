@@ -7,6 +7,7 @@ import 'package:study_hub/Route/RouteName.dart';
 import 'package:study_hub/Service/ApiService/apiServices.dart';
 import 'package:study_hub/Service/baseController.dart';
 import 'package:study_hub/View/Auth/otp.dart';
+import 'package:study_hub/main.dart';
 import 'package:study_hub/utils/sharedPreference/localDatabase.dart';
 
 class AuthController extends GetxController {
@@ -40,7 +41,7 @@ class AuthController extends GetxController {
     Map<String, String> requestBody = <String, String>{
       'email': email,
       'password': password,
-      'fcm_Token':
+      'fcmToken': main.fcmToken.toString()
     };
 
     BaseController().showLoading();
@@ -113,6 +114,7 @@ class AuthController extends GetxController {
     if (apiResponse == null) return false;
 
     final data = jsonDecode(apiResponse);
+    kLogger.f(data);
     BaseController().hideLoading();
 
     if (data["statusCode"] == 201) {
@@ -142,6 +144,7 @@ class AuthController extends GetxController {
     Map<String, String> requestBody = <String, String>{
       'email': email,
       'otp': otp,
+      'fcmToken': main.fcmToken.toString()
     };
 
     BaseController().showLoading();
@@ -171,7 +174,7 @@ class AuthController extends GetxController {
 
       kLogger.i(data["result"]['token'].toString());
       UserSimplePreferences.setProfileToken(data['result']['token'].toString());
-      Get.offAllNamed(RouteName.bottomNav);
+      // Get.offAllNamed(RouteName.bottomNav);
 
       return true;
     } else {
